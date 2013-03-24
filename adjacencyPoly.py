@@ -25,9 +25,14 @@ class precinct:
         return(str(self.precID)+" has "+str(self.a)+", "+str(self.b)+" and is adj to: "+str(self.adj))
 
 class fullSol:
+    """a class to represent a full solution - a list of district solutions
+        coupled with a bunch of functions to see how 'fit' they are."""
     def __init__(self):
+        """init just creates an empty list for districts to go in """
         self.sList = []
     def addDistrict(self, dist):
+        """ addDistrict adds dist to the current list of districts.
+            no error checking to ensure you're not overlapping """
         self.sList.append(singleSol(dist))
     def returnDistrictTotals(self):
         """returnDistrictTotals - returns a balance of a's and b's
@@ -41,16 +46,20 @@ class fullSol:
                 balanceTotal-=1
         return(balanceTotal)
     def printQuery(self):
+        """ returns ArcGIS queries that can be pasted into a layer for a quick check."""
         rt = ""
         for sol in self.sList:
             rt += sol.query()+"\n"
         return(rt)
     def popVariance(self):
+        """What's the population variance for this solution? """
         totalPop = sum([i.population() for i in self.sList])
         avgPop = (totalPop*1.0)/len(self.sList)
         totalVar = sum([abs(avgPop-i.population()) for i in self.sList])/len(self.sList)
         return(totalVar)
     def printTable(self):
+        """ Returns dictionary of precIDs (or PREC_IDENT, SHP attribute)
+             as well as an enumeration of the district. """
         precTable = dict()
         for k in range(0, len(self.sList)):
             for prec in self.sList[k].PDL:
@@ -61,6 +70,8 @@ class fullSol:
         for k in self.sList:
             print k.calcABPopTotals(),
     def mutate1(self):
+        """ Simple mutation.  Finds a border precinct and swaps 
+            it with one of it's neighbors."""
         rList = r.randint(0, len(self.sList)-1)
         flipTgt, flipPtr = self.sList[rList].findFlipper()
         ## flipTgt, flipPtr are int precIDs
