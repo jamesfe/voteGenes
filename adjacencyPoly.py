@@ -50,6 +50,13 @@ class fullSol:
         avgPop = (totalPop*1.0)/len(self.sList)
         totalVar = sum([abs(avgPop-i.population()) for i in self.sList])/len(self.sList)
         return(totalVar)
+    def printTable(self):
+        precTable = dict()
+        for k in range(0, len(self.sList)):
+            for prec in self.sList[k].PDL:
+                if(prec.precID not in precTable):
+                    precTable[prec.precID] = k
+        return(precTable)
  
 class singleSol:
     def __init__(self, precDataList):
@@ -89,7 +96,7 @@ def main(inShp):
     count = 0
     while(t!=3):
         count+=1
-        if(count>10000):
+        if(count>4):
             print "Out of time."
             break
         if(count%100==0):
@@ -99,6 +106,7 @@ def main(inShp):
     print s.printQuery()
     print s.returnDistrictTotals()
     print s.popVariance()
+    s.printTable()
     """
     numSols = 10000
     print("Calculating "+str(numSols)+" solutions...")
