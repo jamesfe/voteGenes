@@ -73,7 +73,7 @@ class fullSol:
         """ Simple mutation.  Finds a border precinct and swaps 
             it with one of it's neighbors."""
         rList = r.randint(0, len(self.sList)-1)
-        flipTgt, flipPtr = self.sList[rList].findFlipper()
+        flipTgt, flipPtr = self.sList[rList].findFlipper1()
         ## flipTgt, flipPtr are int precIDs
         flipObject = 0
         #print "FT: ",flipTgt
@@ -95,14 +95,42 @@ class fullSol:
                         #print "HP: ",holdPtr
                         self.sList[rList].PDL.append(holdPtr)
                         break
- 
+
+    def mutate2(self):
+        rList = r.randint(0, len(self.sList)-1)
+        tgtPDLLen = len(self.sList[rList].PDL)
+        rListPI = set([i.precID for i in self.sList[rList].PDL])
+        ct = 1
+        targetFlip = 0
+        while(ct==1):
+            tgtObj = r.sample(self.sList[rList].PDL, 1)[0]
+            if(len(tgtObj.adj-rListPI)>0):
+                ct = 0
+                targetFlip = tgtObj
+                targetList = r.sample(tgtObj.adj, 1)[0]
+                break
+        ## hopefully targetFlip != 0
+        tgtListNum = -1
+        for i in [_ for _ in range(0, len(self.sList)) if _ != rList]:
+            self.sList[i].retObjByPrecID(targetList)
+            tgtListNum = i
+        if(tgtListNum!=-1):
+            self.sList[tgtListNum].PDL.append(targetFlip)
+            self.sList[rList].PDL.remove(targetFlip)
+                
+
 class singleSol:
     def __init__(self, precDataList):
         self.PDL = precDataList
         self.popVar = -1
         self.totA = -1
         self.totB = -1
-    def findFlipper(self):
+    def retObjByPrecID(self, precID):
+        for _ in self.PDL:
+            if(_.precID==precID):
+                return(_)
+        return(-1)
+    def findFlipper1(self):
         """ finds a precinct on the edge of the current solution that we can flip. """
         flipFound = 0
         flipPartner = 0 ## initialize
@@ -154,9 +182,10 @@ def main(inShp):
     print "Loading data..."
     featureDB = pickle.load(open('fDB.pickle', 'rb'))
     adjacencyDB = pickle.load(open('aDB.pickle', 'rb'))
-
+    """
+    generates some solutions...saves them 
     solList = []
-    for i in range(0, 50000):
+    for i in range(0, 50):
         t, s = genTestSol(featureDB, adjacencyDB)
         if(t<5):
             solList.append(s)
@@ -169,6 +198,14 @@ def main(inShp):
     pickle.dump(solList, file('subSol.pickle', 'wb'))
     print time.asctime()
     print time.time()-start
+    """
+    t,s = genTestSol(featureDB, adjacencyDB)
+    print "Found solution: "
+    s.printQuery()
+    print "Mutating: "
+    s.mutate2()
+    print "Mutated: "
+    s.printQuery()
     """
 ## below code creates a large quantity of solutions for testing
     print "Attempting solutions."
