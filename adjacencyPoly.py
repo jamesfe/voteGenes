@@ -97,14 +97,17 @@ class fullSol:
                         break
 
     def mutate2(self):
-        rList = r.randint(0, len(self.sList)-1)
+        t = 0
+        while(t<=5):
+            rList = r.randint(0, len(self.sList)-1)
+            t = len(self.sList[rList].PDL)
         tgtPDLLen = len(self.sList[rList].PDL)
         rListPI = set([i.precID for i in self.sList[rList].PDL])
         ct = 1
         targetFlip = 0
         while(ct==1):
             tgtObj = r.sample(self.sList[rList].PDL, 1)[0]
-            if(len(tgtObj.adj-rListPI)>0):
+            if(len(tgtObj.adj-rListPI)>1):
                 ct = 0
                 targetFlip = tgtObj
                 targetList = r.sample(tgtObj.adj, 1)[0]
@@ -201,11 +204,23 @@ def main(inShp):
     """
     t,s = genTestSol(featureDB, adjacencyDB)
     print "Found solution: "
-    s.printQuery()
+    print s.printQuery()
     print "Mutating: "
-    s.mutate2()
+    count = 0
+    startTime = time.time()
+    fit = 100
+    while(fit>=2):
+        count+=1
+        if(count>10000):
+            break
+        s.mutate2()
+        cF = fit
+        fit = s.returnDistrictTotals()
+        if(cF!=fit):
+            print "Current fitness: ",fit
     print "Mutated: "
-    s.printQuery()
+    print s.printQuery()
+    print "that took ", abs(time.time()-start)
     """
 ## below code creates a large quantity of solutions for testing
     print "Attempting solutions."
