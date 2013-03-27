@@ -1,8 +1,8 @@
 #import arcpy
 import pickle
 import random as r
-import sys
-import time
+import sys, time, copy
+from operator import itemgetter
 r.seed(time.time())
 
 class precinct:
@@ -120,7 +120,12 @@ class fullSol:
         if(tgtListNum!=-1):
             self.sList[tgtListNum].PDL.append(targetFlip)
             self.sList[rList].PDL.remove(targetFlip)
-                
+    def fitness2(self):
+        fmult = self.returnDistrictTotals()
+        if(fmult<1):
+            fmult = 1
+        return(fmult*self.popVariance())
+
 
 class singleSol:
     def __init__(self, precDataList):
@@ -202,6 +207,38 @@ def main(inShp):
     print time.asctime()
     print time.time()-start
     """
+    solDB = []
+    nOrgs = 100
+    numMutes = 100
+    newBlood = nOrgs/10
+    for i in range(0, nOrgs):
+        t,s = genTestSol(featureDB, adjacencyDB)
+        solDB.append(s)
+    print "Generated ",len(solDB), " solutions"
+    for kMute in range(0, numMutes):
+        avgOrgFitness = sum([i.fitness2() for i in solDB])/len(solDB)
+        print avgOrgFitness
+        rmList = []
+        for t in range(0, nOrgs):
+            if(solDB[t].fitness2() < avgOrgFitness-1):
+                rmList.append(t)
+        rmList.sort(reverse=True)
+        for i in rmList:
+            solDB.pop(i)
+        for k in range(0, nOrgs-len(solDB)-newBlood):
+            dc = copy.copy(solDB[k])
+            dc.mutate2()
+            solDB.append(dc)
+        for k in range(0, newBlood):
+            t,s = genTestSol(featureDB, adjacencyDB)
+            solDB.append(s)
+    t = []
+    for _ in range(0, len(solDB)):
+        t.append((solDB[_].fitness2(), _))
+    t = sorted(t,  key=itemgetter(0))
+    print solDB[t[0][1]].printQuery()
+
+    """ first code to use mutate2:
     t,s = genTestSol(featureDB, adjacencyDB)
     print "Found solution: "
     print s.printQuery()
@@ -209,18 +246,20 @@ def main(inShp):
     count = 0
     startTime = time.time()
     fit = 100
-    while(fit>=2):
+    while(fit>=1):
         count+=1
-        if(count>10000):
+        if(count>100):
             break
         s.mutate2()
         cF = fit
-        fit = s.returnDistrictTotals()
+        fit = s.fitness2()
         if(cF!=fit):
             print "Current fitness: ",fit
     print "Mutated: "
     print s.printQuery()
     print "that took ", abs(time.time()-start)
+
+    """
     """
 ## below code creates a large quantity of solutions for testing
     print "Attempting solutions."
