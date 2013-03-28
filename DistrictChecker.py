@@ -1,4 +1,15 @@
-"""district quick checker - by jim ferrara"""
+"""district quick checker - by jim ferrara
+james.ferrara@gmail.com
+
+Set up parameters in toolbox as:
+
+0: Layer File
+1: Field (User picks field in which # of democrats per block live)
+2: Field (Field in which # of reps per block live)
+3: Field (Field in which district identifier is located)
+
+
+"""
 
 import arcpy
 
@@ -33,7 +44,8 @@ def main(shp, dems, reps, district):
             app = "REPUBLICAN"
         else:
             app = "DEMOCRAT"
-        message("District "+str(i)+" has population "+str(districtTotals[i][0])+" with "+str(districtTotals[i][1])+"/"\
+        message("District "+str(i)+" has population "+str(districtTotals[i][0])+\
+                " with "+str(districtTotals[i][1])+"/"\
                 +str(districtTotals[i][2])+" dem/rep and overall "+app+" by "+str(dl))
 
 if(__name__=="__main__"):
