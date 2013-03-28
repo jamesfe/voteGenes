@@ -177,147 +177,51 @@ class singleSol:
         qstr = '"PREC_IDENT" IN '+str([i.precID for i in self.PDL]).replace("[", "(").replace("]", ")")
         return(qstr)
 
-def main(inShp):
-##    featureDB, adjacencyDB = genAdjacency(inShp)
-##    fFeat = open('fDB.pickle', 'wb')
-##    pickle.dump(featureDB, fFeat)
-##    fFeat.close()
-##    aFeat = open('aDB.pickle', 'wb')
-##    pickle.dump(adjacencyDB, aFeat)
-##    aFeat.close()
-    print time.asctime()
-    start = time.time()
-    print "Loading data..."
-    featureDB = pickle.load(open('fDB.pickle', 'rb'))
-    adjacencyDB = pickle.load(open('aDB.pickle', 'rb'))
-    """
-    generates some solutions...saves them 
-    solList = []
-    for i in range(0, 50):
-        t, s = genTestSol(featureDB, adjacencyDB)
-        if(t<5):
-            solList.append(s)
-    fitness = []
-    for t in solList:
-        fitness.append(t.returnDistrictTotals())
-    fitness.sort()
-    print fitness
-        
-    pickle.dump(solList, file('subSol.pickle', 'wb'))
-    print time.asctime()
-    print time.time()-start
-    """
-    solDB = []
-    nOrgs = 100
-    numMutes = 100
-    newBlood = nOrgs/10
-    for i in range(0, nOrgs):
-        t,s = genTestSol(featureDB, adjacencyDB)
-        solDB.append(s)
-    print "Generated ",len(solDB), " solutions"
-    for kMute in range(0, numMutes):
-        avgOrgFitness = sum([i.fitness2() for i in solDB])/len(solDB)
-        print avgOrgFitness
-        rmList = []
-        for t in range(0, nOrgs):
-            if(solDB[t].fitness2() < avgOrgFitness-1):
-                rmList.append(t)
-        rmList.sort(reverse=True)
-        for i in rmList:
-            solDB.pop(i)
-        for k in range(0, nOrgs-len(solDB)-newBlood):
-            dc = copy.copy(solDB[k])
-            dc.mutate2()
-            solDB.append(dc)
-        for k in range(0, newBlood):
+def main(inShp, cmd):
+    if(cmd=='adjacent'):
+        featureDB, adjacencyDB = genAdjacency(inShp)
+        fFeat = open('fDB.pickle', 'wb')
+        pickle.dump(featureDB, fFeat)
+        fFeat.close()
+        aFeat = open('aDB.pickle', 'wb')
+        pickle.dump(adjacencyDB, aFeat)
+        aFeat.close()
+    elif(cmd=='mutate'):
+        print time.asctime()
+        start = time.time()
+        print "Loading data..."
+        featureDB = pickle.load(open('fDB.pickle', 'rb'))
+        adjacencyDB = pickle.load(open('aDB.pickle', 'rb'))
+        solDB = []
+        nOrgs = 100
+        numMutes = 100
+        newBlood = nOrgs/10
+        for i in range(0, nOrgs):
             t,s = genTestSol(featureDB, adjacencyDB)
             solDB.append(s)
-    t = []
-    for _ in range(0, len(solDB)):
-        t.append((solDB[_].fitness2(), _))
-    t = sorted(t,  key=itemgetter(0))
-    print solDB[t[0][1]].printQuery()
-
-    """ first code to use mutate2:
-    t,s = genTestSol(featureDB, adjacencyDB)
-    print "Found solution: "
-    print s.printQuery()
-    print "Mutating: "
-    count = 0
-    startTime = time.time()
-    fit = 100
-    while(fit>=1):
-        count+=1
-        if(count>100):
-            break
-        s.mutate2()
-        cF = fit
-        fit = s.fitness2()
-        if(cF!=fit):
-            print "Current fitness: ",fit
-    print "Mutated: "
-    print s.printQuery()
-    print "that took ", abs(time.time()-start)
-
-    """
-    """
-## below code creates a large quantity of solutions for testing
-    print "Attempting solutions."
-    t = 5
-    s = fullSol() 
-    count = 0
-    mainTable = dict()
-    solList = []
-    for p in featureDB:
-        mainTable[p[0]] = []
-    while(t!=-1):
-        count+=1
-        if(count>10000):
-            print "Out of time."
-            break
-        if(count%100==0):
-            print count,
-        t, s = genTestSol(featureDB, adjacencyDB)
-        if(t==1):
-            solList.append(s)
-            dTable = s.printTable()
-            s.printABTotals()
-            for k in dTable:
-                mainTable[k].append(dTable[k])
-
-    print s.printQuery()
-    print s.returnDistrictTotals()
-    print s.popVariance()
-    tbOut = file("tbOutPop3.csv", 'w')
-    fOut = ['d'+str(i) for i in range(0, len(mainTable[701]))]
-    tbOut.write("PREC_ID,"+str(fOut).replace("[", "").replace("]", "").replace("'", "")+"\n")
-    for ct in range(0, len(solList)):
-        print ct, solList[ct].popVariance()
-        
-    for i in mainTable:
-        tbOut.write(str(i)+","+str(mainTable[i]).replace("[", "").replace("]", "")+"\n")
-        
-    tbOut.close()
-    """
-    """
-    numSols = 10000
-    print("Calculating "+str(numSols)+" solutions...")
-    solMat = [genSol2(featureDB, adjacencyDB) for i in range(0, numSols)]
-    print("Solutions generated - moving on to evaluation...")
-    solutions = []
-    for sol in solMat:
-        t = fullSol()
-        for k in sol:
-            t.addDistrict(k)
-        solutions.append(t)
-   
-    for sol in solutions:
-        abTot = sol.returnDistrictTotals()
-        if(abTot==1):
-            print "AB Total: ",abTot
-            print sol.printQuery()
-            print "Variance: ",sol.popVariance()
-    """
+        print "Generated ",len(solDB), " solutions"
+        for kMute in range(0, numMutes):
+            avgOrgFitness = sum([i.fitness2() for i in solDB])/len(solDB)
+            print avgOrgFitness
+            rmList = []
+            for t in range(0, nOrgs):
+                if(solDB[t].fitness2() < avgOrgFitness-1):
+                    rmList.append(t)
+            rmList.sort(reverse=True)
+            for i in rmList:
+                solDB.pop(i)
+            for k in range(0, nOrgs-len(solDB)-newBlood):
+                dc = copy.copy(solDB[k])
+                dc.mutate2()
+                solDB.append(dc)
+            for k in range(0, newBlood):
+                t,s = genTestSol(featureDB, adjacencyDB)
+                solDB.append(s)
+        t = []
+        for _ in range(0, len(solDB)):
+            t.append((solDB[_].fitness2(), _))
+        t = sorted(t,  key=itemgetter(0))
+        print solDB[t[0][1]].printQuery()
 
 def genTestSol(fDB, aDB):
     """creates a solutiona nd returns it and it's total district weights to the user"""
@@ -364,6 +268,15 @@ def genSol2(fDB, aDB):
     return(solPool)
         
 def genAdjacency(inShp):
+    """ Given a polygon shapefile with several fields, calculates an 
+        adjacency matrix (dictionary, really) listing each precint's
+        adjacent polygons.
+
+        Requirements: Shapefile must have a field called 'ObamaBiden'
+        as well as 'McCainPali' and 'PREC_IDENT'; these fields are
+        representations of democrats, republicans, and a unique id for
+        each precinct.
+    """
     sCursor = arcpy.SearchCursor(inShp)
     featureDB = []
     for n in sCursor:
@@ -394,4 +307,7 @@ def genAdjacency(inShp):
     return(featureDB, adjacencyDB)
 
 if(__name__=="__main__"):
-    main('./FFXVotes_DissJoin.shp')
+    if(len(sys.argv)!=3):
+        failMessage()
+    else:
+        main('./FFXVotes_DissJoin.shp', sys.argv[1])
